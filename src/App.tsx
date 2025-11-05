@@ -11,6 +11,7 @@ import type { StyleKey } from './lib/albumUtils';
 import { cn } from './lib/utils';
 import Footer from './components/Footer';
 import { EgalLogo, CloseIcon, UserIcon } from './components/ui/draggable-card';
+import { useAuth } from './hooks/useAuth';
 
 type AppState = 'idle' | 'selecting' | 'generating' | 'results';
 type ImageStatus = 'pending' | 'done' | 'error' | 'discarded';
@@ -222,71 +223,37 @@ function App() {
     const [isDragging, setIsDragging] = useState(false);
     const [modalContent, setModalContent] = useState<ModalContentType | null>(null);
     const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-    // User Access State
-    const [isSignedIn, setIsSignedIn] = useState(false);
-    const [credits, setCredits] = useState(1);
-    const [hasUsedFreeGeneration, setHasUsedFreeGeneration] = useState(false);
-    const [userName, setUserName] = useState<string | null>(null);
     const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
+
+    // User Access State from useAuth hook
+    const {
+        isSignedIn,
+        userName,
+        credits,
+        hasUsedFreeGeneration,
+        handleSignIn: authHandleSignIn,
+        handleSignOut,
+        handleAddCredits: authHandleAddCredits,
+        deductCredit,
+    } = useAuth();
     
     const allStyleKeys = useMemo(() => Object.keys(STYLES) as StyleKey[], []);
-
-    // Initialize state from localStorage
-    useEffect(() => {
-        const freeUsed = localStorage.getItem('egal_guest_free_used') === 'true';
-        setHasUsedFreeGeneration(freeUsed);
-        if (freeUsed) {
-            setCredits(0);
-        } else {
-            setCredits(1);
-        }
-    }, []);
 
     useEffect(() => {
         document.documentElement.lang = lang;
         document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
     }, [lang]);
     
-    // Handlers for user access
+    // Handlers that interact with both auth and UI state
     const handleSignIn = () => {
-        setIsSignedIn(true);
-        const storedCredits = parseInt(localStorage.getItem('egal_user_credits') || '0', 10);
-        setCredits(storedCredits);
-        setUserName('Yusuf A.'); // Placeholder name
+        authHandleSignIn();
         setIsPricingModalOpen(true);
     };
 
-    const handleSignOut = () => {
-        setIsSignedIn(false);
-        setUserName(null);
-        localStorage.removeItem('egal_user_credits');
-        const freeUsed = localStorage.getItem('egal_guest_free_used') === 'true';
-        setCredits(freeUsed ? 0 : 1);
-    };
-    
     const handleAddCredits = (amount: number) => {
-        const newTotal = credits + amount;
-        setCredits(newTotal);
-        if (isSignedIn) {
-            localStorage.setItem('egal_user_credits', newTotal.toString());
-        }
+        authHandleAddCredits(amount);
         setIsPricingModalOpen(false);
     };
-
-    const deductCredit = useCallback(() => {
-        if (!isSignedIn) {
-            setHasUsedFreeGeneration(true);
-            localStorage.setItem('egal_guest_free_used', 'true');
-        }
-        setCredits(prevCredits => {
-            const newCredits = Math.max(0, prevCredits - 1);
-            if (isSignedIn) {
-                localStorage.setItem('egal_user_credits', newCredits.toString());
-            }
-            return newCredits;
-        });
-    }, [isSignedIn]);
 
     const processFile = (file: File) => {
         setError(null);
@@ -419,7 +386,7 @@ function App() {
 
         await Promise.all(workers);
 
-    }, [uploadedImage, lang, credits, deductCredit, isSignedIn, allStyleKeys]);
+    }, [uploadedImage, lang, credits, deductCredit, isSignedIn]);
 
 
     const handleGenerateClick = async () => {
