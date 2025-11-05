@@ -211,7 +211,6 @@ const Toast = ({ message, onClear }: { message: string, onClear: () => void }) =
     );
 };
 
-
 // --- Main App Component ---
 function App() {
     const [lang, setLang] = useState<'en' | 'ar'>('en');
@@ -420,7 +419,7 @@ function App() {
 
         await Promise.all(workers);
 
-    }, [uploadedImage, lang, credits, deductCredit, isSignedIn]);
+    }, [uploadedImage, lang, credits, deductCredit, isSignedIn, allStyleKeys]);
 
 
     const handleGenerateClick = async () => {
@@ -543,7 +542,7 @@ function App() {
                     >
                         <h2 className="text-3xl md:text-4xl font-bold text-center">{t(lang, 'selectStyles')}</h2>
                         <p className="text-neutral-500 mt-2 text-center">
-                            {!isSignedIn && !hasUsedFreeGeneration 
+                             {!isSignedIn && !hasUsedFreeGeneration 
                                 ? t(lang, 'freeGeneration') 
                                 : t(lang, 'selectionCounter')
                                     .replace('{selected}', selectedStyles.length.toString())
@@ -561,19 +560,19 @@ function App() {
                              
                              <div className="lg:col-span-2 flex flex-col gap-3">
                                 {allStyleKeys.map(key => {
-                                    const isSelected = selectedStyles.includes(key);
-                                    const isSelectionDisabled = !isSelected && selectedStyles.length >= credits;
-                                    return (
-                                        <StyleCard 
-                                            key={key} 
-                                            styleKey={key} 
-                                            isSelected={isSelected} 
-                                            onToggle={handleStyleToggle} 
-                                            lang={lang} 
-                                            isLocked={isLockedForGuest}
-                                            isSelectionDisabled={isSelectionDisabled}
-                                        />
-                                    );
+                                     const isSelected = selectedStyles.includes(key);
+                                     const isSelectionDisabled = !isSelected && selectedStyles.length >= credits;
+                                     return (
+                                         <StyleCard 
+                                             key={key} 
+                                             styleKey={key} 
+                                             isSelected={isSelected} 
+                                             onToggle={handleStyleToggle} 
+                                             lang={lang} 
+                                             isLocked={isLockedForGuest}
+                                             isSelectionDisabled={isSelectionDisabled}
+                                         />
+                                     );
                                 })}
                              </div>
                         </div>
@@ -611,6 +610,7 @@ function App() {
                         transition={{ duration: 0.3, ease: "easeInOut" }}
                         className="z-10 w-full max-w-7xl flex-1 flex flex-col items-center pt-24 pb-32"
                     >
+                        {/* ... (existing generating/results UI, no major changes) ... */}
                          <AnimatePresence>
                         {isGenerating && (
                             <motion.div 
@@ -720,7 +720,7 @@ function App() {
                     <PricingModal lang={lang} onAddCredits={handleAddCredits} onClose={() => setIsPricingModalOpen(false)} />
                 )}
             </AnimatePresence>
-
+            
             <AnimatePresence>
                 {toastMessage && <Toast message={toastMessage} onClear={() => setToastMessage(null)} />}
             </AnimatePresence>

@@ -75,9 +75,9 @@ interface HeadshotCardProps {
 }
 
 type ActionButtonProps = {
-    onClick: () => void,
-    'aria-label': string,
-    children?: React.ReactNode
+    onClick: () => void;
+    'aria-label': string;
+    children?: React.ReactNode;
 };
 
 const ActionButton = ({ onClick, 'aria-label': ariaLabel, children }: ActionButtonProps) => (
